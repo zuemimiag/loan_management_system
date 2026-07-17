@@ -13,17 +13,22 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Role {
-
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String roleName;
-    private String description;
+    private String employeeId;
+    private String name;
+    private String email;
+    private String password;
+    private String phone;
     private String status;
+    private Date lastLogin;
     private Date createdAt;
     private Date updatedAt;
 
-    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
-    private List<User> users = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_id")
+    private Role role;
 }
+
