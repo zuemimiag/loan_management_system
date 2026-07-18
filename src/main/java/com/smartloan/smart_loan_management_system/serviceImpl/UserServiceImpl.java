@@ -1,5 +1,6 @@
 package com.smartloan.smart_loan_management_system.serviceImpl;
 
+import com.smartloan.smart_loan_management_system.dto_request.UserMapper;
 import com.smartloan.smart_loan_management_system.dto_request.UserRequest;
 import com.smartloan.smart_loan_management_system.dto_request.UserResponse;
 import com.smartloan.smart_loan_management_system.entity.Role;
@@ -16,10 +17,12 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final UserMapper userMapper;
 
-    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository) {
+    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, UserMapper userMapper) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.userMapper = userMapper;
     }
 
     @Override
@@ -34,50 +37,52 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new RuntimeException("Role not found."));
 
         //3. Convert DTO -> Entity
-        User user = new User();
-        user.setName(request.getName());
-        user.setEmployeeId(request.getEmployeeId());
-        user.setEmail(request.getEmail());
-        user.setPhone(request.getPhone());
-        user.setPassword(request.getPassword());
-        user.setStatus(request.getStatus());
+        User user = userMapper.toEntity(request);
+        user.setRole(role);
         user.setCreatedAt(new Date());
         user.setUpdatedAt(new Date());
-        user.setRole(role);
 
         User savedUser = userRepository.save(user);
 
-        UserResponse response = new UserResponse();
-        response.setName(savedUser.getName());
-        response.setEmployeeId(savedUser.getEmployeeId());
-        response.setEmail(savedUser.getEmail());
-        response.setPhone(savedUser.getPhone());
-        response.setLastLogin(savedUser.getLastLogin());
-        response.setStatus(savedUser.getStatus());
-        response.setCreatedAt(savedUser.getCreatedAt());
-        response.setUpdatedAt(savedUser.getUpdatedAt());
-        response.setRoleName(savedUser.getRole().getRoleName());
-
-
-    return response ;
+    return userMapper.toResponse(savedUser) ;
     }
     @Override
     public List<UserResponse> getAllUsers() {
-        return List.of();
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .map(userMapper::toResponse)
+                .toList();
     }
 
     @Override
     public UserResponse getUserById(Long id) {
-        return null;
+        User user = userRepository.findById(id)
+                .orElseThrow(()-> new RuntimeException("User not found."));
+        return userMapper.toResponse(user);
     }
 
     @Override
     public UserResponse updateUser(Long id, UserRequest request) {
-        return null;
+        User user = userRepository.findById(id)
+                .orElseThrow(()-> new RuntimeException("User not found."));
+        Role role = roleRepository.findById(request.getRoleId())
+                .orElseThrow(()->new RuntimeException("Role not found."));
+
+        userMapper.updateEntity(request,user);
+        user.setRole(role);
+        user.setUpdatedAt(new Date());
+
+        User updateUser = userRepository.save(user);
+        return userMapper.toResponse(updateUser);
     }
 
     @Override
     public void deleteUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(()-> new RuntimeException("User not found."));
+        user.setStatus("INACTIVE");
+        user.setUpdatedAt(new Date());
 
+        userRepository.save(user);
     }
 }
