@@ -11,7 +11,6 @@ public class UserMapper {
 
     public User toEntity(UserRequest request) {
         User user = new User();
-        Role role = new Role();
 
         user.setName(request.getName());
         user.setEmployeeId(request.getEmployeeId());
@@ -21,7 +20,6 @@ public class UserMapper {
         user.setStatus(request.getStatus());
         user.setCreatedAt(new Date());
         user.setUpdatedAt(new Date());
-        user.setRole(role);
         return user;
     }
 
@@ -49,7 +47,6 @@ public class UserMapper {
         user.setPhone(request.getPhone());
         user.setPassword(request.getPassword());
         user.setStatus(request.getStatus());
-        user.setCreatedAt(new Date());
         user.setUpdatedAt(new Date());
         user.setRole(role);
 

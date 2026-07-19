@@ -5,6 +5,9 @@ import com.smartloan.smart_loan_management_system.dto_request.UserRequest;
 import com.smartloan.smart_loan_management_system.dto_request.UserResponse;
 import com.smartloan.smart_loan_management_system.entity.Role;
 import com.smartloan.smart_loan_management_system.entity.User;
+import com.smartloan.smart_loan_management_system.exception.EmailAlreadyExistsException;
+import com.smartloan.smart_loan_management_system.exception.RoleNotFoundException;
+import com.smartloan.smart_loan_management_system.exception.UserNotFoundException;
 import com.smartloan.smart_loan_management_system.repository.RoleRepository;
 import com.smartloan.smart_loan_management_system.repository.UserRepository;
 import com.smartloan.smart_loan_management_system.service.UserService;
@@ -29,12 +32,12 @@ public class UserServiceImpl implements UserService {
     public UserResponse createUser(UserRequest request) {
         // 1. check email already exists
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists.");
+            throw new EmailAlreadyExistsException("Email already exists.");
         }
 
         //2. Find Role
         Role role = roleRepository.findById(request.getRoleId())
-                .orElseThrow(() -> new RuntimeException("Role not found."));
+                .orElseThrow(() -> new RoleNotFoundException("Role not found."));
 
         //3. Convert DTO -> Entity
         User user = userMapper.toEntity(request);
@@ -57,7 +60,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse getUserById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("User not found."));
+                .orElseThrow(()-> new UserNotFoundException("User not found."));
         return userMapper.toResponse(user);
     }
 
