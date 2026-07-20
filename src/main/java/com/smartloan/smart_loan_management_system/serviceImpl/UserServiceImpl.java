@@ -71,7 +71,7 @@ public class UserServiceImpl implements UserService {
         Role role = roleRepository.findById(request.getRoleId())
                 .orElseThrow(()->new RuntimeException("Role not found."));
 
-        userMapper.updateEntity(request,user);
+        userMapper.updatedEntity(request,user);
         user.setRole(role);
         user.setUpdatedAt(new Date());
 

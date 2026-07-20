@@ -26,6 +26,7 @@ public class UserMapper {
     public UserResponse toResponse(User user) {
 
         UserResponse response = new UserResponse();
+        response.setId(user.getId());
         response.setName(user.getName());
         response.setEmployeeId(user.getEmployeeId());
         response.setEmail(user.getEmail());
@@ -39,7 +40,7 @@ public class UserMapper {
         return response;
     }
 
-    public User updateEntity(UserRequest request,User user){
+    public User updatedEntity(UserRequest request,User user){
         Role role = new Role();
         user.setName(request.getName());
         user.setEmployeeId(request.getEmployeeId());
