@@ -16,4 +16,6 @@ public interface RegionService {
     RegionResponse updatedRegion(Long id,RegionRequest request);
 
     void deactivateRegion(Long id);
+
+
 }

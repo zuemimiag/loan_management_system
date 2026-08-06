@@ -47,7 +47,7 @@ public class RoleServiceImpl implements RoleService {
     public RoleResponse getRoleById(Long id) {
         Role role = roleRepository.findById(id)
                 .orElseThrow(()-> new RoleNotFoundException("Role Not Found"));
-        return null;
+        return roleMapper.toResponse(role);
     }
 
     @Override
