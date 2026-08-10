@@ -34,7 +34,6 @@ public class RegionMapper {
         regions.setRegionName(request.getRegionName());
         regions.setManagerName(request.getManagerName());
         regions.setStatus(request.getStatus());
-        regions.setUpdatedAt(regions.getUpdatedAt());
         return regions;
     }
 }
