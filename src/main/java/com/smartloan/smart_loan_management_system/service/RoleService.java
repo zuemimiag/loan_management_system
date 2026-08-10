@@ -5,6 +5,7 @@ import com.smartloan.smart_loan_management_system.dto_request.RoleResponse;
 
 import java.util.List;
 
+
 public interface RoleService {
 
     RoleResponse createRole(RoleRequest request);

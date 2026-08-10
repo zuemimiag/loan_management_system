@@ -1,7 +1,9 @@
 package com.smartloan.smart_loan_management_system.dto_request;
 
 import com.smartloan.smart_loan_management_system.entity.Regions;
+import org.springframework.stereotype.Component;
 
+@Component
 public class RegionMapper {
 
     public Regions toEntity(RegionRequest request){
