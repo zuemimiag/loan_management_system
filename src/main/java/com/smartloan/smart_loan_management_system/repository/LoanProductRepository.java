@@ -11,4 +11,6 @@ public interface LoanProductRepository extends JpaRepository<LoanProduct,Long> {
     Optional<LoanProduct> findByProductName(String productName);
 
     boolean existsByProductCode(String productCode);
+
+    boolean existsByProductName(String productName);
 }
