@@ -5,7 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "regions")
@@ -22,4 +24,7 @@ public class Regions {
     private String status;
     private Date createdAt;
     private Date updatedAt;
+
+    @OneToMany(mappedBy = "regions")
+    private List<Branch> branches = new ArrayList<>();
 }

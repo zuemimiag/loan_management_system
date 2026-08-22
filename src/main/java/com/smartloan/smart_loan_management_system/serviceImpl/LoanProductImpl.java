@@ -59,13 +59,19 @@ public class LoanProductImpl implements LoanProductService {
     public LoanProductResponse updateProduct(Long id, LoanProductRequest request) {
         LoanProduct loanProduct = loanProductRepository.findById(id)
                 .orElseThrow(()->new RuntimeException("Loan product not found."));
+
         String productCode = request.getProductCode().trim().toUpperCase();
         if(!loanProduct.getProductCode().equals(productCode)&& loanProductRepository.existsByProductCode(productCode)){
             throw new RuntimeException("Loan product code already exists.");
         }
+
+        String productName = request.getProductName().trim().toUpperCase();
+        if(!loanProduct.getProductName().equalsIgnoreCase(productName) && loanProductRepository.existsByProductName(productName)){
+            throw new RuntimeException("Loan Product name already exists.");
+        }
         validateLoanProduct(request);
         loanProduct.setProductCode(productCode);
-        loanProduct.setProductName(request.getProductName());
+        loanProduct.setProductName(productName);
         loanProduct.setInterestRate(request.getInterestRate());
         loanProduct.setMinimumAmount(request.getMinimumAmount());
         loanProduct.setMaximumAmount(request.getMaximumAmount());
@@ -101,8 +107,16 @@ public class LoanProductImpl implements LoanProductService {
         if(request.getDefaultTerm() == null || request.getDefaultTerm()<=0){
             throw new RuntimeException("Loan term must be greater than zero.");
         }
-        if(request.getPenaltyRate() == null && request.getPenaltyRate().compareTo(BigDecimal.ZERO)< 0 ){
+        if(request.getPenaltyRate() != null && request.getPenaltyRate().compareTo(BigDecimal.ZERO)< 0 ){
             throw new RuntimeException("Penalty rate cannot be negative.");
         }
+
+        if (request.getMinimumAmount()
+                .compareTo(request.getMaximumAmount()) > 0) {
+
+            throw new RuntimeException(
+                    "Minimum amount cannot be greater than maximum amount.");
+        }
+
     }
 }

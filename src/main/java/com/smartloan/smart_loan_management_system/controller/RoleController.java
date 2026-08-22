@@ -18,7 +18,7 @@ public class RoleController {
     private final RoleService roleService;
 
     @PostMapping
-    public ResponseEntity<RoleResponse> createRole(RoleRequest request){
+    public ResponseEntity<RoleResponse> createRole(@RequestBody RoleRequest request){
         RoleResponse response = roleService.createRole(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -34,7 +34,7 @@ public class RoleController {
         return ResponseEntity.ok(roleService.getRoleById(id));
     }
 
-    @PutMapping
+    @PutMapping("/{id}")
     public ResponseEntity<RoleResponse> updatedByRole(@PathVariable Long id,
                                                       @RequestBody RoleRequest request){
         return ResponseEntity.ok(roleService.updateRole(id,request));

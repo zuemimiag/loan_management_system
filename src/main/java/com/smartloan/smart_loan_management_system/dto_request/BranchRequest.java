@@ -15,4 +15,5 @@ public class BranchRequest {
     private String email;
     private String status;
     private Date updatedAt;
+    private Long regionId;
 }

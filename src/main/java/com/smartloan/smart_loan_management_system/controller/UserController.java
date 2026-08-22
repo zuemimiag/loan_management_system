@@ -18,13 +18,13 @@ public class UserController {
 
     private final UserService userService;
 
-    @PostMapping("/createUser")
+    @PostMapping
     public ResponseEntity<UserResponse> createUser(@RequestBody UserRequest request){
         UserResponse response = userService.createUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/getAllUsers")
+    @GetMapping
     public ResponseEntity<List<UserResponse>> getAllUsers(){
 
         return ResponseEntity.ok(userService.getAllUsers());
@@ -36,13 +36,13 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
-    @PutMapping("/updateUser/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<UserResponse> updateUser(
             @PathVariable Long id,
             @RequestBody UserRequest request){
         return ResponseEntity.ok(userService.updateUser(id,request));
     }
-    @PutMapping("/deactive/{id}")
+    @PutMapping("{id}/deactivate")
     public ResponseEntity<String> deleteUser(
             @PathVariable Long id){
         userService.deleteUser(id);

@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class BranchMapper {
-    public Branch toRequest(BranchRequest request){
+    public Branch toEntity(BranchRequest request){
         Branch branch = new Branch();
         branch.setBranchCode(request.getBranchCode());
         branch.setBranchName(request.getBranchName());
@@ -26,6 +26,12 @@ public class BranchMapper {
         response.setEmail(branch.getEmail());
         response.setPhone(branch.getPhone());
         response.setStatus(branch.getStatus());
+
+        if(branch.getRegions() != null){
+            response.setRegionId(branch.getRegions().getId());
+            response.setRegionName(branch.getRegions().getRegionName());
+        }
+
         response.setCreatedAt(branch.getCreateAt());
         response.setUpdatedAt(branch.getUpdatedAt());
         return response;

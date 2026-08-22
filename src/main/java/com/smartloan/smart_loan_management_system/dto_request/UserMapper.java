@@ -41,7 +41,7 @@ public class UserMapper {
     }
 
     public User updatedEntity(UserRequest request,User user){
-        Role role = new Role();
+
         user.setName(request.getName());
         user.setEmployeeId(request.getEmployeeId());
         user.setEmail(request.getEmail());
@@ -49,7 +49,6 @@ public class UserMapper {
         user.setPassword(request.getPassword());
         user.setStatus(request.getStatus());
         user.setUpdatedAt(new Date());
-        user.setRole(role);
 
         return user;
     }

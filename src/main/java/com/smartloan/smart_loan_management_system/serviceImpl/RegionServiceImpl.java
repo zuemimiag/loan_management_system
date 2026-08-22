@@ -66,6 +66,7 @@ public class RegionServiceImpl implements RegionService {
                 .orElseThrow(()-> new RegionNotFoundException("Region Not Found Exception."));
         regions.setStatus("INACTIVE");
         regions.setUpdatedAt(new Date());
+        regionRepository.save(regions);
 
     }
 }

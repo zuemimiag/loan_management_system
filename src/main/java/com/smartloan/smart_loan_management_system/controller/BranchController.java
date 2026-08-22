@@ -18,7 +18,7 @@ public class BranchController {
     private final BranchService branchService;
 
     @PostMapping
-    public ResponseEntity<BranchResponse> createBranch(BranchRequest request){
+    public ResponseEntity<BranchResponse> createBranch(@RequestBody BranchRequest request){
         BranchResponse response = branchService.createBranch(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -31,7 +31,7 @@ public class BranchController {
     public ResponseEntity<BranchResponse> getBranchById(@PathVariable Long id){
         return ResponseEntity.ok(branchService.getBranchById(id));
     }
-    @PutMapping
+    @PutMapping("/{id}")
     public ResponseEntity<BranchResponse> updatedBranch(@PathVariable Long id,
                                                         @RequestBody BranchRequest request){
         return ResponseEntity.ok(branchService.updatedBranch(id,request));

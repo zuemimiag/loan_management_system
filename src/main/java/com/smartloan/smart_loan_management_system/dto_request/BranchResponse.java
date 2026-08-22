@@ -15,6 +15,8 @@ public class BranchResponse {
     private String phone;
     private String email;
     private String status;
+    private Long regionId;
+    private String regionName;
     private Date createdAt;
     private Date updatedAt;
 }

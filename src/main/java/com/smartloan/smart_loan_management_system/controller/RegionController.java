@@ -11,14 +11,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/regions/")
+@RequestMapping("/api/regions")
 @RequiredArgsConstructor
 public class RegionController {
 
     private final RegionService regionService;
 
     @PostMapping
-    public ResponseEntity<RegionResponse> createRegion(RegionRequest request){
+    public ResponseEntity<RegionResponse> createRegion(@RequestBody RegionRequest request){
         RegionResponse response = regionService.createRegion(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -33,7 +33,7 @@ public class RegionController {
         return ResponseEntity.ok(regionService.getRegionById(id));
     }
 
-    @PutMapping
+    @PutMapping("/{id}")
     public ResponseEntity<RegionResponse> updatedRegion(@PathVariable Long id,
                                                         @RequestBody RegionRequest request){
         return ResponseEntity.ok(regionService.updatedRegion(id,request));
