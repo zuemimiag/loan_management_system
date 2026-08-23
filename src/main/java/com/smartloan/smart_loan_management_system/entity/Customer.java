@@ -5,35 +5,35 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
+import java.time.LocalDate;
 import java.util.Date;
-import java.util.List;
 
 @Entity
-@Table(name = "users")
+@Table(name = "customers")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class User {
+public class Customer {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String employeeId;
-    private String name;
-    @Column(unique = true)
-    private String email;
-    private String password;
+    private Long Id;
+    private String customerName;
+    private String nrc;
+    private LocalDate dateOfBirth;
+    private String gender;
     private String phone;
+    private String address;
     private String status;
-    private Date lastLogin;
     private Date createdAt;
     private Date updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "role_id")
-    private Role role;
+    @JoinColumn(name = "branch_id",nullable = false)
+    private Branch branch;
 
-    @OneToMany(mappedBy = "loanOfficer")
-    private List<Customer> customers = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "lo_id",nullable = false)
+    private User loanOfficer;
+
 }
-

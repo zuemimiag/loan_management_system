@@ -24,6 +24,7 @@ public class LoanProductImpl implements LoanProductService {
     @Override
     public LoanProductResponse createProduct(LoanProductRequest request) {
         String productCode = request.getProductCode().trim().toUpperCase();
+
         if(loanProductRepository.existsByProductCode(productCode)){
             throw new RuntimeException("Loan Product code already exists.");
         }
