@@ -46,6 +46,7 @@ public class CustomerMapper {
         }
         response.setCreatedAt(customer.getCreatedAt());
         response.setUpdatedAt(customer.getUpdatedAt());
+        response.setStatus(customer.getStatus());
         return response;
     }
 

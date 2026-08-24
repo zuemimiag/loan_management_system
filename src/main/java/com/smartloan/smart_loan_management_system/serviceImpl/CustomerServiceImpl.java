@@ -72,7 +72,7 @@ public class CustomerServiceImpl implements CustomerService {
         }
 
         if (loanOfficer.getRole() == null ||
-                !"LOAN_OFFICER".equalsIgnoreCase(
+                !"LO".equalsIgnoreCase(
                         loanOfficer.getRole().getRoleName())) {
 
             throw new RuntimeException(
