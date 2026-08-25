@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "loan_accounts")
@@ -43,8 +44,8 @@ public class LoanAccount {
     private Integer term;
     private BigDecimal penaltyRate;
     private String status;
-    private Date disbursementDate;
-    private Date maturityDate;
-    private Date createdAt;
-    private Date updatedAt;
+    private LocalDate disbursementDate;
+    private LocalDate maturityDate;
+    private LocalDate createdAt;
+    private LocalDate updatedAt;
 }

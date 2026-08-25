@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.time.LocalDate;
 
 @Data
 public class LoanAccountResponse {
@@ -29,9 +30,9 @@ public class LoanAccountResponse {
 
     private String status;
 
-    private Date disbursementDate;
-    private Date maturityDate;
+    private LocalDate disbursementDate;
+    private LocalDate maturityDate;
 
-    private Date createdAt;
-    private Date updatedAt;
+    private LocalDate createdAt;
+    private LocalDate updatedAt;
 }
