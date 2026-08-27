@@ -17,7 +17,6 @@ public class LoanAccountController {
 
     private final LoanAccountService loanAccountService;
 
-    // Create Loan Account
     @PostMapping
     public ResponseEntity<LoanAccountResponse> createLoanAccount(
             @RequestBody LoanAccountRequest request) {
