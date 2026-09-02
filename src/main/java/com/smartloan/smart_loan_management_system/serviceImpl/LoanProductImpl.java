@@ -108,8 +108,12 @@ public class LoanProductImpl implements LoanProductService {
         if(request.getDefaultTerm() == null || request.getDefaultTerm()<=0){
             throw new RuntimeException("Loan term must be greater than zero.");
         }
-        if(request.getPenaltyRate() != null && request.getPenaltyRate().compareTo(BigDecimal.ZERO)< 0 ){
-            throw new RuntimeException("Penalty rate cannot be negative.");
+        if (request.getPenaltyRate() == null ||
+                request.getPenaltyRate().compareTo(BigDecimal.ZERO) < 0) {
+
+            throw new RuntimeException(
+                    "Penalty rate cannot be null or negative."
+            );
         }
 
         if (request.getMinimumAmount()
@@ -117,6 +121,21 @@ public class LoanProductImpl implements LoanProductService {
 
             throw new RuntimeException(
                     "Minimum amount cannot be greater than maximum amount.");
+        }
+        if (request.getRepaymentMethod() == null ||
+                request.getRepaymentMethod().trim().isEmpty()) {
+
+            throw new RuntimeException(
+                    "Repayment method is required."
+            );
+        }
+
+        if (!request.getRepaymentMethod().equalsIgnoreCase("FLAT") &&
+                !request.getRepaymentMethod().equalsIgnoreCase("REDUCING_BALANCE")) {
+
+            throw new RuntimeException(
+                    "Invalid repayment method."
+            );
         }
 
     }

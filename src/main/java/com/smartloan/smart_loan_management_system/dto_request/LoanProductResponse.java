@@ -18,6 +18,7 @@ public class LoanProductResponse {
     private Integer defaultTerm;
     private BigDecimal penaltyRate;
     private String description;
+    private String repaymentMethod;
     private String status;
     private Date updatedAt;
 }

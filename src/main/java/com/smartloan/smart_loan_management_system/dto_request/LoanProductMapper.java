@@ -17,6 +17,7 @@ public class LoanProductMapper {
         loanProduct.setInterestRate(request.getInterestRate());
         loanProduct.setDefaultTerm(request.getDefaultTerm());
         loanProduct.setPenaltyRate(request.getPenaltyRate());
+        loanProduct.setRepaymentMethod(request.getRepaymentMethod());
         return loanProduct;
     }
 
@@ -32,6 +33,7 @@ public class LoanProductMapper {
         response.setMinimumAmount(product.getMinimumAmount());
         response.setInterestRate(product.getInterestRate());
         response.setPenaltyRate(product.getPenaltyRate());
+        response.setRepaymentMethod(product.getRepaymentMethod());
         response.setUpdatedAt(product.getUpdatedAt());
         return response;
     }
@@ -45,6 +47,7 @@ public class LoanProductMapper {
         loanProduct.setMinimumAmount(request.getMinimumAmount());
         loanProduct.setStatus(request.getStatus());
         loanProduct.setDefaultTerm(request.getDefaultTerm());
+        loanProduct.setRepaymentMethod(request.getRepaymentMethod());
         return loanProduct;
     }
 }

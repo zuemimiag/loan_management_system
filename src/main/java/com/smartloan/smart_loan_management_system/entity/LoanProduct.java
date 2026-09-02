@@ -26,6 +26,7 @@ public class LoanProduct {
     private BigDecimal maximumAmount;
     private Integer defaultTerm;
     private BigDecimal penaltyRate;
+    private String repaymentMethod;
     private String description;
     private String status;
     private Date createdAt;
