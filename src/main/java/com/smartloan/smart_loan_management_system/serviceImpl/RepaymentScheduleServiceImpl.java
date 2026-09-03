@@ -130,10 +130,6 @@ public class RepaymentScheduleServiceImpl
         BigDecimal interestRate =
                 loanAccount.getInterestRate();
 
-        // ------------------------------------------------
-        // Monthly Principal
-        // ------------------------------------------------
-
         BigDecimal monthlyPrincipal =
                 loanAmount.divide(
                         BigDecimal.valueOf(term),
@@ -172,10 +168,6 @@ public class RepaymentScheduleServiceImpl
                                 RoundingMode.HALF_UP
                         );
 
-        // ------------------------------------------------
-        // Generate installments
-        // ------------------------------------------------
-
         for (int i = 1; i <= term; i++) {
 
             RepaymentSchedule schedule =
@@ -192,10 +184,6 @@ public class RepaymentScheduleServiceImpl
             schedule.setDueDate(
                     Date.valueOf(dueDate)
             );
-
-            // ------------------------------------------------
-            // Principal
-            // ------------------------------------------------
 
             BigDecimal principalDue =
                     monthlyPrincipal;
@@ -216,17 +204,9 @@ public class RepaymentScheduleServiceImpl
                                         RoundingMode.HALF_UP
                                 );
             }
-
-            // ------------------------------------------------
-            // Total Due
-            // ------------------------------------------------
-
             BigDecimal totalDue =
                     principalDue.add(monthlyInterest);
 
-            // ------------------------------------------------
-            // Set Schedule Values
-            // ------------------------------------------------
 
             schedule.setPrincipalDue(
                     principalDue
@@ -270,17 +250,9 @@ public class RepaymentScheduleServiceImpl
             schedules.add(schedule);
         }
 
-        // ------------------------------------------------
-        // Save all schedules
-        // ------------------------------------------------
-
         List<RepaymentSchedule> savedSchedules =
                 repaymentScheduleRepository
                         .saveAll(schedules);
-
-        // ------------------------------------------------
-        // Entity → Response
-        // ------------------------------------------------
 
         return savedSchedules
                 .stream()
