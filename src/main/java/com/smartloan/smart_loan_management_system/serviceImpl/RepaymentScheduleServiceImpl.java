@@ -28,52 +28,89 @@ public class RepaymentScheduleServiceImpl
 
     @Override
     public List<RepaymentSchedule> findByLoanAccountId(Long loanAccountId) {
-        return List.of();
+
+        if (!loanAccountRepository.existsById(loanAccountId)) {
+            throw new RuntimeException("Loan account not found.");
+        }
+
+        return repaymentScheduleRepository
+                .findByLoanAccount_Id(loanAccountId);
     }
 
     @Override
     public List<RepaymentScheduleResponse> generateSchedule(
             Long loanAccountId) {
 
-        LoanAccount loanAccount = loanAccountRepository.findById(loanAccountId)
+        // 1. Find Loan Account
+        LoanAccount loanAccount = loanAccountRepository
+                .findById(loanAccountId)
                 .orElseThrow(() ->
                         new RuntimeException("Loan account not found."));
 
-        // Prevent duplicate schedule generation
+        // 2. Prevent duplicate schedule generation
         if (!repaymentScheduleRepository
-                .findByLoanAccountId(loanAccountId)
+                .findByLoanAccount_Id(loanAccountId)
                 .isEmpty()) {
 
             throw new RuntimeException(
-                    "Repayment schedule already exists for this loan account.");
+                    "Repayment schedule already exists for this loan account."
+            );
         }
 
-        if (loanAccount.getTerm() == null || loanAccount.getTerm() <= 0) {
-            throw new RuntimeException("Invalid loan term.");
-        }
-
+        // 3. Validate loan amount
         if (loanAccount.getLoanAmount() == null ||
                 loanAccount.getLoanAmount()
                         .compareTo(BigDecimal.ZERO) <= 0) {
 
-            throw new RuntimeException("Invalid loan amount.");
+            throw new RuntimeException(
+                    "Invalid loan amount."
+            );
         }
 
-        if (loanAccount.getInterestRate() == null) {
-            throw new RuntimeException("Interest rate is required.");
+        // 4. Validate term
+        if (loanAccount.getTerm() == null ||
+                loanAccount.getTerm() <= 0) {
+
+            throw new RuntimeException(
+                    "Invalid loan term."
+            );
+        }
+
+        // 5. Validate interest rate
+        if (loanAccount.getInterestRate() == null ||
+                loanAccount.getInterestRate()
+                        .compareTo(BigDecimal.ZERO) < 0) {
+
+            throw new RuntimeException(
+                    "Invalid interest rate."
+            );
+        }
+
+        // 6. Check repayment method
+        if (loanAccount.getLoanProduct() == null) {
+            throw new RuntimeException(
+                    "Loan product not found."
+            );
         }
 
         String repaymentMethod =
-                loanAccount.getLoanProduct().getRepaymentMethod();
+                loanAccount.getLoanProduct()
+                        .getRepaymentMethod();
 
-        if (repaymentMethod == null) {
+        if (repaymentMethod == null ||
+                repaymentMethod.trim().isEmpty()) {
+
             throw new RuntimeException(
-                    "Repayment method is not configured.");
+                    "Repayment method is not configured."
+            );
         }
 
+        // Currently support FLAT only
         if (!repaymentMethod.equalsIgnoreCase("FLAT")) {
+
             throw new RuntimeException(
-                    "Currently only FLAT repayment is supported.");
+                    "Currently only FLAT repayment is supported."
+            );
         }
 
         return generateFlatSchedule(loanAccount);
@@ -82,11 +119,20 @@ public class RepaymentScheduleServiceImpl
     private List<RepaymentScheduleResponse> generateFlatSchedule(
             LoanAccount loanAccount) {
 
-        List<RepaymentSchedule> schedules = new ArrayList<>();
+        List<RepaymentSchedule> schedules =
+                new ArrayList<>();
 
         int term = loanAccount.getTerm();
 
-        BigDecimal loanAmount = loanAccount.getLoanAmount();
+        BigDecimal loanAmount =
+                loanAccount.getLoanAmount();
+
+        BigDecimal interestRate =
+                loanAccount.getInterestRate();
+
+        // ------------------------------------------------
+        // Monthly Principal
+        // ------------------------------------------------
 
         BigDecimal monthlyPrincipal =
                 loanAmount.divide(
@@ -95,18 +141,26 @@ public class RepaymentScheduleServiceImpl
                         RoundingMode.HALF_UP
                 );
 
-        /*
-         * Annual interest rate:
-         *
-         * 12% = 0.12
-         *
-         * Monthly flat interest:
-         *
-         * Loan Amount × Annual Rate ÷ 12
-         */
+        // ------------------------------------------------
+        // Monthly Flat Interest
+        //
+        // Example:
+        //
+        // Loan Amount = 500,000
+        // Interest = 12%
+        //
+        // Annual Interest:
+        // 500,000 × 12 / 100
+        // = 60,000
+        //
+        // Monthly Interest:
+        // 60,000 / 12
+        // = 5,000
+        // ------------------------------------------------
+
         BigDecimal monthlyInterest =
                 loanAmount
-                        .multiply(loanAccount.getInterestRate())
+                        .multiply(interestRate)
                         .divide(
                                 BigDecimal.valueOf(100),
                                 2,
@@ -118,6 +172,10 @@ public class RepaymentScheduleServiceImpl
                                 RoundingMode.HALF_UP
                         );
 
+        // ------------------------------------------------
+        // Generate installments
+        // ------------------------------------------------
+
         for (int i = 1; i <= term; i++) {
 
             RepaymentSchedule schedule =
@@ -127,6 +185,7 @@ public class RepaymentScheduleServiceImpl
 
             schedule.setInstallmentNo(i);
 
+            // Due date
             LocalDate dueDate =
                     LocalDate.now().plusMonths(i);
 
@@ -134,40 +193,76 @@ public class RepaymentScheduleServiceImpl
                     Date.valueOf(dueDate)
             );
 
-            BigDecimal principalDue = monthlyPrincipal;
+            // ------------------------------------------------
+            // Principal
+            // ------------------------------------------------
 
-            // Last installment adjusts rounding difference
+            BigDecimal principalDue =
+                    monthlyPrincipal;
+
+            // Adjust final installment for rounding
             if (i == term) {
 
                 BigDecimal previousPrincipal =
-                        monthlyPrincipal
-                                .multiply(
-                                        BigDecimal.valueOf(term - 1)
-                                );
+                        monthlyPrincipal.multiply(
+                                BigDecimal.valueOf(term - 1)
+                        );
 
                 principalDue =
-                        loanAmount.subtract(previousPrincipal)
+                        loanAmount
+                                .subtract(previousPrincipal)
                                 .setScale(
                                         2,
                                         RoundingMode.HALF_UP
                                 );
             }
 
+            // ------------------------------------------------
+            // Total Due
+            // ------------------------------------------------
+
             BigDecimal totalDue =
                     principalDue.add(monthlyInterest);
 
-            schedule.setPrincipalDue(principalDue);
-            schedule.setInterestDue(monthlyInterest);
-            schedule.setPenaltyDue(BigDecimal.ZERO);
-            schedule.setTotalDue(totalDue);
+            // ------------------------------------------------
+            // Set Schedule Values
+            // ------------------------------------------------
 
-            schedule.setPrincipalPaid(BigDecimal.ZERO);
-            schedule.setInterestPaid(BigDecimal.ZERO);
-            schedule.setPenaltyPaid(BigDecimal.ZERO);
+            schedule.setPrincipalDue(
+                    principalDue
+            );
 
-            schedule.setStatus("PENDING");
+            schedule.setInterestDue(
+                    monthlyInterest
+            );
 
-            Date today = Date.valueOf(LocalDate.now());
+            schedule.setPenaltyDue(
+                    BigDecimal.ZERO
+            );
+
+            schedule.setTotalDue(
+                    totalDue
+            );
+
+            // Nothing paid yet
+            schedule.setPrincipalPaid(
+                    BigDecimal.ZERO
+            );
+
+            schedule.setInterestPaid(
+                    BigDecimal.ZERO
+            );
+
+            schedule.setPenaltyPaid(
+                    BigDecimal.ZERO
+            );
+
+            schedule.setStatus(
+                    "PENDING"
+            );
+
+            Date today =
+                    Date.valueOf(LocalDate.now());
 
             schedule.setCreatedAt(today);
             schedule.setUpdatedAt(today);
@@ -175,10 +270,20 @@ public class RepaymentScheduleServiceImpl
             schedules.add(schedule);
         }
 
-        List<RepaymentSchedule> savedSchedules =
-                repaymentScheduleRepository.saveAll(schedules);
+        // ------------------------------------------------
+        // Save all schedules
+        // ------------------------------------------------
 
-        return savedSchedules.stream()
+        List<RepaymentSchedule> savedSchedules =
+                repaymentScheduleRepository
+                        .saveAll(schedules);
+
+        // ------------------------------------------------
+        // Entity → Response
+        // ------------------------------------------------
+
+        return savedSchedules
+                .stream()
                 .map(repaymentScheduleMapper::toResponse)
                 .toList();
     }
@@ -187,13 +292,16 @@ public class RepaymentScheduleServiceImpl
     public List<RepaymentScheduleResponse> getScheduleByLoanAccount(
             Long loanAccountId) {
 
+        // Check loan account
         if (!loanAccountRepository.existsById(loanAccountId)) {
+
             throw new RuntimeException(
-                    "Loan account not found.");
+                    "Loan account not found."
+            );
         }
 
         return repaymentScheduleRepository
-                .findByLoanAccountId(loanAccountId)
+                .findByLoanAccount_Id(loanAccountId)
                 .stream()
                 .map(repaymentScheduleMapper::toResponse)
                 .toList();

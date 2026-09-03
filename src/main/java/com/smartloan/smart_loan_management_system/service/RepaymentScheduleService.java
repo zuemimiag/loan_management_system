@@ -11,5 +11,7 @@ public interface RepaymentScheduleService {
 
     List<RepaymentScheduleResponse> generateSchedule(Long loanAccountId);
 
-    List<RepaymentScheduleResponse> getScheduleByLoanAccount(Long loanAccountId);
+    List<RepaymentScheduleResponse> getScheduleByLoanAccount(
+            Long loanAccountId
+    );
 }

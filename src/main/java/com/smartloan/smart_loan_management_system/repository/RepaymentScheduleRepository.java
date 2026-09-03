@@ -10,7 +10,5 @@ import java.util.List;
 public interface RepaymentScheduleRepository
         extends JpaRepository<RepaymentSchedule, Long> {
 
-    List<RepaymentSchedule> findByLoanAccountIdOrderByInstallmentNoAsc(
-            Long loanAccountId
-    );
+    List<RepaymentSchedule> findByLoanAccount_Id(Long loanAccountId);
 }
