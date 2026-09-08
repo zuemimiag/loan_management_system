@@ -27,6 +27,6 @@ public class RepaymentScheduleResponse {
 
     private String status;
 
-    private Date createdAt;
-    private Date updatedAt;
+    private java.util.Date createdAt;
+    private java.util.Date updatedAt;
 }

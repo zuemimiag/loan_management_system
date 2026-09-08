@@ -43,8 +43,8 @@ public class RepaymentSchedule {
 
     private String status;
 
-    private Date createdAt;
+    private java.util.Date createdAt;
 
-    private Date updatedAt;
+    private java.util.Date updatedAt;
 
 }
