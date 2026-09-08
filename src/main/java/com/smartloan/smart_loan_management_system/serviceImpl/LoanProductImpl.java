@@ -79,6 +79,7 @@ public class LoanProductImpl implements LoanProductService {
         loanProduct.setDefaultTerm(request.getDefaultTerm());
         loanProduct.setPenaltyRate(request.getPenaltyRate());
         loanProduct.setDescription(request.getDescription());
+        loanProduct.setRepaymentMethod(request.getRepaymentMethod());
         loanProduct.setUpdatedAt(new Date());
         LoanProduct updatedLoanProduct = loanProductRepository.save(loanProduct);
 
