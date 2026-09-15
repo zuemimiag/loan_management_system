@@ -278,4 +278,17 @@ public class RepaymentScheduleServiceImpl
                 .map(repaymentScheduleMapper::toResponse)
                 .toList();
     }
+
+    @Override
+    public BigDecimal getRemainingPrincipal(Long loanAccountId) {
+
+        if (!loanAccountRepository.existsById(loanAccountId)) {
+            throw new RuntimeException(
+                    "Loan Account not found."
+            );
+        }
+
+        return repaymentScheduleRepository
+                .getRemainingPrincipalByLoanAccountId(loanAccountId);
+    }
 }

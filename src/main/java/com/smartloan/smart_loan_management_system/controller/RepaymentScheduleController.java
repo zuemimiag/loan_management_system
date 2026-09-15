@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -44,5 +45,16 @@ public class RepaymentScheduleController {
         return ResponseEntity.ok(
                 repaymentScheduleService.findByLoanAccountId(loanAccountId)
         );
+    }
+
+    @GetMapping("/loan-account/{loanAccountId}/remaining-principal")
+    public ResponseEntity<BigDecimal> getRemainingPrincipal(
+            @PathVariable Long loanAccountId) {
+
+        BigDecimal remainingPrincipal =
+                repaymentScheduleService
+                        .getRemainingPrincipal(loanAccountId);
+
+        return ResponseEntity.ok(remainingPrincipal);
     }
 }

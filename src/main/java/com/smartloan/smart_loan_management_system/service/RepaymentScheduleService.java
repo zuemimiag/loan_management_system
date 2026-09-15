@@ -3,6 +3,7 @@ package com.smartloan.smart_loan_management_system.service;
 import com.smartloan.smart_loan_management_system.dto_request.RepaymentScheduleResponse;
 import com.smartloan.smart_loan_management_system.entity.RepaymentSchedule;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface RepaymentScheduleService {
@@ -14,4 +15,6 @@ public interface RepaymentScheduleService {
     List<RepaymentScheduleResponse> getScheduleByLoanAccount(
             Long loanAccountId
     );
+
+    BigDecimal getRemainingPrincipal(Long loanAccountId);
 }
