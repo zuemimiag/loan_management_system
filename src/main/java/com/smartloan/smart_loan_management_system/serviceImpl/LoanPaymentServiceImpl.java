@@ -24,8 +24,11 @@ import java.util.List;
 public class LoanPaymentServiceImpl implements LoanPaymentService {
 
     private final LoanPaymentRepository loanPaymentRepository;
+
     private final LoanAccountRepository loanAccountRepository;
+
     private final LoanPaymentMapper loanPaymentMapper;
+
     private final RepaymentScheduleRepository repaymentScheduleRepository;
 
     @Override
@@ -35,15 +38,19 @@ public class LoanPaymentServiceImpl implements LoanPaymentService {
 
         // 1. Find Loan Account
         LoanAccount loanAccount =
-                loanAccountRepository.findById(request.getLoanAccountId())
+                loanAccountRepository.findById(
+                                request.getLoanAccountId()
+                        )
                         .orElseThrow(() ->
                                 new RuntimeException(
                                         "Loan Account not found."
-                                ));
+                                )
+                        );
 
         // 2. Check Loan Account status
-        if (loanAccount.getStatus() == null ||
-                !loanAccount.getStatus().equalsIgnoreCase("ACTIVE")) {
+        if (loanAccount.getStatus() == null
+                || !loanAccount.getStatus()
+                .equalsIgnoreCase("ACTIVE")) {
 
             throw new RuntimeException(
                     "Payment cannot be made for an inactive loan account."
@@ -51,8 +58,9 @@ public class LoanPaymentServiceImpl implements LoanPaymentService {
         }
 
         // 3. Validate payment amount
-        if (request.getPaymentAmount() == null ||
-                request.getPaymentAmount().compareTo(BigDecimal.ZERO) <= 0) {
+        if (request.getPaymentAmount() == null
+                || request.getPaymentAmount()
+                .compareTo(BigDecimal.ZERO) <= 0) {
 
             throw new RuntimeException(
                     "Payment amount must be greater than zero."
@@ -87,24 +95,97 @@ public class LoanPaymentServiceImpl implements LoanPaymentService {
                 )
         );
 
-        // 6. Remaining payment amount
+        // 6. Calculate total outstanding amount
+        BigDecimal totalOutstanding = schedules.stream()
+                .map(schedule -> {
+
+                    BigDecimal principalDue =
+                            schedule.getPrincipalDue() != null
+                                    ? schedule.getPrincipalDue()
+                                    : BigDecimal.ZERO;
+
+                    BigDecimal principalPaid =
+                            schedule.getPrincipalPaid() != null
+                                    ? schedule.getPrincipalPaid()
+                                    : BigDecimal.ZERO;
+
+                    BigDecimal interestDue =
+                            schedule.getInterestDue() != null
+                                    ? schedule.getInterestDue()
+                                    : BigDecimal.ZERO;
+
+                    BigDecimal interestPaid =
+                            schedule.getInterestPaid() != null
+                                    ? schedule.getInterestPaid()
+                                    : BigDecimal.ZERO;
+
+                    BigDecimal penaltyDue =
+                            schedule.getPenaltyDue() != null
+                                    ? schedule.getPenaltyDue()
+                                    : BigDecimal.ZERO;
+
+                    BigDecimal penaltyPaid =
+                            schedule.getPenaltyPaid() != null
+                                    ? schedule.getPenaltyPaid()
+                                    : BigDecimal.ZERO;
+
+                    BigDecimal remainingPrincipal =
+                            principalDue.subtract(principalPaid);
+
+                    BigDecimal remainingInterest =
+                            interestDue.subtract(interestPaid);
+
+                    BigDecimal remainingPenalty =
+                            penaltyDue.subtract(penaltyPaid);
+
+                    return remainingPrincipal
+                            .add(remainingInterest)
+                            .add(remainingPenalty);
+
+                })
+                .reduce(
+                        BigDecimal.ZERO,
+                        BigDecimal::add
+                );
+
+        // 7. Validate payment against total outstanding
+        if (request.getPaymentAmount()
+                .compareTo(totalOutstanding) > 0) {
+
+            throw new RuntimeException(
+                    "Payment amount is greater than the total outstanding amount."
+            );
+        }
+
+        // 8. Remaining payment amount
         BigDecimal remainingPayment =
                 request.getPaymentAmount();
 
         // Total allocation for this payment
-        BigDecimal totalPrincipalAmount = BigDecimal.ZERO;
-        BigDecimal totalInterestAmount = BigDecimal.ZERO;
-        BigDecimal totalPenaltyAmount = BigDecimal.ZERO;
+        BigDecimal totalPrincipalAmount =
+                BigDecimal.ZERO;
 
-        // 7. Process installments one by one
+        BigDecimal totalInterestAmount =
+                BigDecimal.ZERO;
+
+        BigDecimal totalPenaltyAmount =
+                BigDecimal.ZERO;
+
+        // 9. Process installments one by one
         for (RepaymentSchedule schedule : schedules) {
 
             // Skip fully paid installments
-            if ("PAID".equalsIgnoreCase(schedule.getStatus())) {
+            if ("PAID".equalsIgnoreCase(
+                    schedule.getStatus())) {
+
                 continue;
             }
 
-            if (remainingPayment.compareTo(BigDecimal.ZERO) <= 0) {
+            // Stop when payment has been fully allocated
+            if (remainingPayment.compareTo(
+                    BigDecimal.ZERO
+            ) <= 0) {
+
                 break;
             }
 
@@ -151,61 +232,85 @@ public class LoanPaymentServiceImpl implements LoanPaymentService {
                     principalDue.subtract(principalPaid);
 
             // --------------------------------
-            // Pay Penalty first
+            // 1. Pay Penalty first
             // --------------------------------
             BigDecimal penaltyAmount =
-                    remainingPayment.min(remainingPenalty);
+                    remainingPayment.min(
+                            remainingPenalty
+                    );
 
             remainingPayment =
-                    remainingPayment.subtract(penaltyAmount);
+                    remainingPayment.subtract(
+                            penaltyAmount
+                    );
 
             // --------------------------------
-            // Then pay Interest
+            // 2. Pay Interest
             // --------------------------------
             BigDecimal interestAmount =
-                    remainingPayment.min(remainingInterest);
+                    remainingPayment.min(
+                            remainingInterest
+                    );
 
             remainingPayment =
-                    remainingPayment.subtract(interestAmount);
+                    remainingPayment.subtract(
+                            interestAmount
+                    );
 
             // --------------------------------
-            // Then pay Principal
+            // 3. Pay Principal
             // --------------------------------
             BigDecimal principalAmount =
-                    remainingPayment.min(remainingPrincipal);
+                    remainingPayment.min(
+                            remainingPrincipal
+                    );
 
             remainingPayment =
-                    remainingPayment.subtract(principalAmount);
+                    remainingPayment.subtract(
+                            principalAmount
+                    );
 
             // Update schedule paid amounts
             schedule.setPenaltyPaid(
-                    penaltyPaid.add(penaltyAmount)
+                    penaltyPaid.add(
+                            penaltyAmount
+                    )
             );
 
             schedule.setInterestPaid(
-                    interestPaid.add(interestAmount)
+                    interestPaid.add(
+                            interestAmount
+                    )
             );
 
             schedule.setPrincipalPaid(
-                    principalPaid.add(principalAmount)
+                    principalPaid.add(
+                            principalAmount
+                    )
             );
 
             // Check installment completion
             boolean penaltyCompleted =
                     schedule.getPenaltyPaid()
-                            .compareTo(penaltyDue) >= 0;
+                            .compareTo(
+                                    penaltyDue
+                            ) >= 0;
 
             boolean interestCompleted =
                     schedule.getInterestPaid()
-                            .compareTo(interestDue) >= 0;
+                            .compareTo(
+                                    interestDue
+                            ) >= 0;
 
             boolean principalCompleted =
                     schedule.getPrincipalPaid()
-                            .compareTo(principalDue) >= 0;
+                            .compareTo(
+                                    principalDue
+                            ) >= 0;
 
-            if (penaltyCompleted &&
-                    interestCompleted &&
-                    principalCompleted) {
+            if (penaltyCompleted
+                    && interestCompleted
+                    && principalCompleted) {
 
                 schedule.setStatus("PAID");
 
@@ -214,36 +319,41 @@ public class LoanPaymentServiceImpl implements LoanPaymentService {
                 schedule.setStatus("PARTIAL");
             }
 
-            schedule.setUpdatedAt(new Date());
+            schedule.setUpdatedAt(
+                    new Date()
+            );
 
-            // Save schedule
-            repaymentScheduleRepository.save(schedule);
+            // Save updated repayment schedule
+            repaymentScheduleRepository.save(
+                    schedule
+            );
 
             // Accumulate payment allocation
             totalPenaltyAmount =
-                    totalPenaltyAmount.add(penaltyAmount);
+                    totalPenaltyAmount.add(
+                            penaltyAmount
+                    );
 
             totalInterestAmount =
-                    totalInterestAmount.add(interestAmount);
+                    totalInterestAmount.add(
+                            interestAmount
+                    );
 
             totalPrincipalAmount =
-                    totalPrincipalAmount.add(principalAmount);
+                    totalPrincipalAmount.add(
+                            principalAmount
+                    );
         }
 
-        // 8. Check if payment is larger than the
-        // entire remaining loan amount
-        if (remainingPayment.compareTo(BigDecimal.ZERO) > 0) {
-
-            throw new RuntimeException(
-                    "Payment amount is greater than the remaining loan amount."
-            );
-        }
-
-        // 9. Create Loan Payment record
+        // 10. Create Loan Payment record
         LoanPayment payment =
-                loanPaymentMapper.toEntity(request);
+                loanPaymentMapper.toEntity(
+                        request
+                );
 
-        payment.setLoanAccount(loanAccount);
+        payment.setLoanAccount(
+                loanAccount
+        );
 
         payment.setPrincipalAmount(
                 totalPrincipalAmount
@@ -257,16 +367,26 @@ public class LoanPaymentServiceImpl implements LoanPaymentService {
                 totalPenaltyAmount
         );
 
-        payment.setCreatedAt(new Date());
-        payment.setUpdatedAt(new Date());
+        payment.setCreatedAt(
+                new Date()
+        );
 
-        // 10. Save payment
+        payment.setUpdatedAt(
+                new Date()
+        );
+
+        // 11. Save payment
         LoanPayment savedPayment =
-                loanPaymentRepository.save(payment);
+                loanPaymentRepository.save(
+                        payment
+                );
 
-        // 11. Return response
-        return loanPaymentMapper.toResponse(savedPayment);
+        // 12. Return response
+        return loanPaymentMapper.toResponse(
+                savedPayment
+        );
     }
+
     @Override
     public List<LoanPaymentResponse> getAllPayments() {
 
@@ -285,7 +405,8 @@ public class LoanPaymentServiceImpl implements LoanPaymentService {
                         .orElseThrow(() ->
                                 new RuntimeException(
                                         "Payment not found."
-                                ));
+                                )
+                        );
 
         return loanPaymentMapper.toResponse(
                 payment
@@ -297,8 +418,9 @@ public class LoanPaymentServiceImpl implements LoanPaymentService {
     getPaymentsByLoanAccount(
             Long loanAccountId) {
 
-        if (!loanAccountRepository
-                .existsById(loanAccountId)) {
+        if (!loanAccountRepository.existsById(
+                loanAccountId
+        )) {
 
             throw new RuntimeException(
                     "Loan Account not found."
@@ -306,22 +428,28 @@ public class LoanPaymentServiceImpl implements LoanPaymentService {
         }
 
         return loanPaymentRepository
-                .findByLoanAccountId(loanAccountId)
+                .findByLoanAccountId(
+                        loanAccountId
+                )
                 .stream()
                 .map(loanPaymentMapper::toResponse)
                 .toList();
     }
+
     @Override
     public LoanPaymentResponse updatePayment(
             Long id,
             LoanPaymentRequest request) {
 
         LoanPayment payment =
-                loanPaymentRepository.findById(id)
+                loanPaymentRepository.findById(
+                                id
+                        )
                         .orElseThrow(() ->
                                 new RuntimeException(
                                         "Payment not found."
-                                ));
+                                )
+                        );
 
         loanPaymentMapper.updatePayment(
                 request,
@@ -343,15 +471,25 @@ public class LoanPaymentServiceImpl implements LoanPaymentService {
             Long id) {
 
         LoanPayment payment =
-                loanPaymentRepository.findById(id)
+                loanPaymentRepository.findById(
+                                id
+                        )
                         .orElseThrow(() ->
                                 new RuntimeException(
                                         "Payment not found."
-                                ));
+                                )
+                        );
 
-        payment.setStatus("INACTIVE");
-        payment.setUpdatedAt(new Date());
+        payment.setStatus(
+                "INACTIVE"
+        );
 
-        loanPaymentRepository.save(payment);
+        payment.setUpdatedAt(
+                new Date()
+        );
+
+        loanPaymentRepository.save(
+                payment
+        );
     }
 }
