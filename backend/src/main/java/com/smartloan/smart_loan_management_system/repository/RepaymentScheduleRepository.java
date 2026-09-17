@@ -15,16 +15,9 @@ public interface RepaymentScheduleRepository
 
     List<RepaymentSchedule> findByLoanAccount_Id(Long loanAccountId);
 
-    @Query("""
-        SELECT COALESCE(
-            SUM(
-                r.principalDue -
-                COALESCE(r.principalPaid, 0)
-            ), 0
-        )
-        FROM RepaymentSchedule r
-        WHERE r.loanAccount.id = :loanAccountId
-        """)
+    @Query("SELECT COALESCE(SUM(r.principalDue - COALESCE(r.principalPaid, 0)), 0) " +
+            "FROM RepaymentSchedule r " +
+            "WHERE r.loanAccount.id = :loanAccountId")
     BigDecimal getRemainingPrincipalByLoanAccountId(
             @Param("loanAccountId") Long loanAccountId
     );
